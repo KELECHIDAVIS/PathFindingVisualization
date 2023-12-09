@@ -14,6 +14,7 @@
 #include <chrono> // std::chrono::microseconds
 #include <thread> // std::this_thread::sleep_for
 #include <set>
+#include <stack>
 #include <queue> 
 
 void draw(GameBoard & board , const int frameTime); // function that handles drawing the board 
@@ -60,23 +61,23 @@ int main()
             cin>> response ; 
         }
 
-        cout<<"Would you like randomize starting and stopping positions (if first time n is recommended) ? (y/n):  "<<endl; 
-
-
-        set<int> validResponses2 = {'y','n'}; 
-        char response2; 
-        cin>> response2 ; 
-
-        while(validResponses2.find(response2) == validResponses2.end()) 
-        {
-            cout<<"Invalid Response Please Try Again"<<endl; 
-            cin>> response2 ; 
-        }
-
-        if(response == 'y')
-        {
-            board.randomizeTargets(); 
-        }
+//        cout<<"Would you like randomize starting and stopping positions (if first time n is recommended) ? (y/n):  "<<endl; 
+//
+//
+//        set<int> validResponses2 = {'y','n'}; 
+//        char response2; 
+//        cin>> response2 ; 
+//
+//        while(validResponses2.find(response2) == validResponses2.end()) 
+//        {
+//            cout<<"Invalid Response Please Try Again"<<endl; 
+//            cin>> response2 ; 
+//        }
+//
+//        if(response == 'y')
+//        {
+//            board.randomizeTargets(); 
+//        }
 
         switch(response)
         {
@@ -92,13 +93,10 @@ int main()
             case 4: 
                 astar(board); 
                 break; 
-
+            case 0 :
+                gameRunning = false; 
+                break; 
         }
-
-        cout<<"End of Loop"<<endl; 
-        
-        gameRunning= true; 
-        cout<<"would you like to keep on playing"<<endl; 
 
     }
 
@@ -129,7 +127,7 @@ void bfs(GameBoard & board)
     coordQueue.push(board.startCoords)  ; 
 
     int iterations = 0 ; 
-    int frametime = 200; 
+    int frametime = 100; 
 
     while(!coordQueue.empty()) 
     {
@@ -177,6 +175,62 @@ void bfs(GameBoard & board)
     
 }
 
-void dfs(GameBoard & board){}
+void dfs(GameBoard & board)
+{
+    cout<<"Commencing Depth First Search..." <<endl; 
+    this_thread::sleep_for(chrono::milliseconds{750});
+
+    
+    stack<Coords> coordStack; 
+
+    coordStack.push(board.startCoords)  ; 
+
+    int iterations = 0 ; 
+    int frametime = 200; 
+
+    while(!coordStack.empty()) 
+    {
+        iterations++; 
+        Coords current = coordStack.top(); 
+        
+        coordStack.pop(); 
+        // check if this node is the goal node 
+        if(current.equals(board.goalCoords))
+        {
+            cout<<"Goal found in "<< iterations <<" iterations"<<endl; 
+            this_thread::sleep_for(chrono::milliseconds{1300});
+            break; 
+        }
+
+        // add its children / surrounding nodes that are not already visited and mark them visited; the starting node is already assumed to be visited
+        for(int i = 1 ; i>=-1 ; i-- )
+        {
+            for(int j =1; j>=-1 ; j-- )
+            {
+                int newRow = current.row + i ; 
+                int newCol = current.col +j ; 
+
+                // first check if the coords are even valid 
+                if((newRow <0 || newRow >= board.rows) || (newCol <0 || newCol>= board.cols))
+                {
+                    //invalid 
+                    continue; //go next 
+                }
+
+                // now check if this current index has been visited alr 
+
+                if((board.grid[newRow][newCol] != board.startSymbol) && (board.grid[newRow][newCol]  != board.visitedSymbol))
+                {
+                    board.grid[newRow][newCol] = board.visitedSymbol; 
+
+                    coordStack.push(Coords(newRow, newCol)); 
+                }
+            }
+        }
+
+
+        draw(board, frametime); 
+    }
+}
 void dijkstras(GameBoard & board){}
 void astar(GameBoard & board){}
