@@ -14,6 +14,7 @@
 #define GAMEBOARD_H
 
 #include <iostream> 
+#include <string>
 using namespace std; 
 
 
@@ -63,7 +64,10 @@ struct Node
     
     int getFCost()
     {
-        return hCost+ gCost;     }
+        return hCost+ gCost;   
+    }
+    
+    
 };
 // the game is gonna be a graph/tree where generally each space within the graph has 4 possible neighbors 
 struct GameBoard 
@@ -169,30 +173,70 @@ struct GameBoard
 
         delete [] grid; 
     }
+    
+    unsigned int JSHash(const std::string& str)
+    {
+       unsigned int hash = 1315423911;
 
+       for(std::size_t i = 0; i < str.length(); i++)
+       {
+          hash ^= ((hash << 5) + str[i] + (hash >> 2));
+       }
+
+       return hash;
+    }
+    
+    //gonna be determined by a random string and hashing 
+    
+    string randString(int stringLength)
+    {
+        string letters= "abcdefghijklmnoqrstuvwxyz"; 
+        
+        string randoString = ""; 
+        
+        for(int i =0 ; i< stringLength; i++)
+        {
+            randoString += letters[rand()%letters.size()]; 
+        }
+        return randoString; 
+    }
     // randomizes that start and goals coordinates ; 
+    int randRow()
+    {
+        string hashString = randString(rand()%5 + 5) ; //string of length 5 - 10 
+        
+        return JSHash(hashString) %rows; 
+    }
+    
+    int randCol()
+    {
+        string hashString = randString(rand()%5 + 5) ; //string of length 5 - 10 
+        
+        return JSHash(hashString) %cols; 
+    }
     void randomizeTargets()
     {
-//            int startRow = rand()%rows; 
-//            int startCol = rand()%cols; 
-//
-//            int goalRow = rand()%rows; 
-//            int goalCol = rand()%cols; 
-//
-//            // they can't equal each other 
-//            while(goalCol==startCol && goalRow==startRow)
-//            {
-//                int goalRow = rand()%rows; 
-//                int goalCol= rand()%cols; 
-//            }
-//
-//            startCoords.row = startRow; 
-//            startCoords.col = startCol; 
-//            goalCoords.row = goalRow; 
-//            goalCoords.col = goalCol; 
-//
-//            grid[startCoords.row][startCoords.col] = startSymbol; 
-//            grid[goalCoords.row][goalCoords.col] = goalSymbol;  
+            int startRow = randRow(); 
+            int startCol = randCol(); 
+
+            int goalRow = randRow(); 
+            int goalCol = randCol(); 
+
+            // they can't equal each other 
+            while(goalCol==startCol && goalRow==startRow)
+            {
+                int goalRow = rand()%rows; 
+                int goalCol= rand()%cols; 
+            }
+
+            this->startNode->symbol= emptySymbol; 
+            this->goalNode->symbol= emptySymbol; 
+            
+            this->startNode = grid[startRow][startCol]; 
+            this->goalNode = grid[goalRow][goalCol];
+            
+            this->startNode->symbol = startSymbol ; 
+            this->goalNode ->symbol = goalSymbol ; 
     }
 
     void printBoard ()

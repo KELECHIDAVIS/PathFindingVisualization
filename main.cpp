@@ -26,57 +26,18 @@ void generatePath(GameBoard& board , Node* currentNode);  // a recursive functio
 void astar(GameBoard & board); 
 void mergeSort(SimpleVector<Node*> &arr, int l, int r) ; 
 void merge(SimpleVector<Node*>& arr, int p, int q, int r); 
-
-
-
+int getDistance(Node* node1 , Node* node2 ); 
+void generatePathAstar(GameBoard& board , Node* endNode ); 
 int main()
 {
     srand(time(0)); 
 
-    bool gameRunning = false; 
+    bool gameRunning = true; 
     const int frameTime = 2000; // how many milliseconds before we draw the next frame ; 
     
  
-    
-    Node* test1 =new Node(0,0 );  
-    test1->gCost = 1;     
-    test1->hCost = 1; 
-
-    Node* test2 =new Node(0,0 ); 
-    test2->gCost = 2;     
-    test2->hCost = 2; 
-    
-    Node* test3 =new Node(0,0 ); 
-    test3->gCost = 3;     
-    test3->hCost = 3; 
-    
-    Node* test4 =new Node(0,0 ); 
-    test4->gCost = 4;     
-    test4->hCost = 4; 
-    
-    SimpleVector<Node*> testVector ; 
-    
-    testVector.pshBack(test3); 
-    testVector.pshBack(test1); 
-    testVector.pshBack(test4); 
-    testVector.pshBack(test2); 
-    
-    
-    
-    for(int i = 0 ; i<testVector.size(); i++)
-    {
-        cout<<testVector[i]->getFCost()<<" "; 
-    }
-    cout<<endl; 
-    
-    mergeSort(testVector, 0 , testVector.size()-1);
-    
-    for(int i = 0 ; i<testVector.size(); i++)
-    {
-        cout<<testVector[i]->getFCost()<<" "; 
-    }
-    
-    delete test1 , test2 , test3 , test4; 
+   
+   
     
     while(gameRunning)
     {
@@ -87,8 +48,7 @@ int main()
         cout<<"Starting Node: "<< board.startSymbol<<"    "; 
         cout<<"Goal Node: "<< board.goalSymbol<<"    "; 
         cout<<"Empty space: "<< board.emptySymbol<<"    "; 
-        cout<<"Visited Node: "<< board.visitedSymbol<<"    "; 
-        cout<<"Blockade : "<< board.blockadeSymbol<<"    ";         
+        cout<<"Visited Node: "<< board.visitedSymbol<<"    ";     
         cout<<"Optimal Path : "<< board.pathSymbol<<"    "; 
         cout<<endl<<endl<<"Select The Algorithm You Would Like to See: "<<endl; 
         cout<<"Breadth First Search (1) "<<endl; 
@@ -106,23 +66,28 @@ int main()
             cin>> response ; 
         }
 
-//        cout<<"Would you like randomize starting and stopping positions (if first time n is recommended) ? (y/n):  "<<endl; 
-//
-//
-//        set<int> validResponses2 = {'y','n'}; 
-//        char response2; 
-//        cin>> response2 ; 
-//
-//        while(validResponses2.find(response2) == validResponses2.end()) 
-//        {
-//            cout<<"Invalid Response Please Try Again"<<endl; 
-//            cin>> response2 ; 
-//        }
-//
-//        if(response == 'y')
-//        {
-//            board.randomizeTargets(); 
-//        }
+        if(response== 0 )
+            break; 
+        cout<<"Would you like randomized starting and goal position ? (y/n):  "<<endl; 
+        cout<<"It is recommended to see all algorithms default before randomizing"<<endl; 
+
+
+        set<char> validResponses2 = {'y','n'}; 
+        char response2; 
+        cin>> response2 ; 
+
+        while(validResponses2.find(response2) == validResponses2.end()) 
+        {
+            cout<<"Invalid Response Please Try Again"<<endl; 
+            cin>> response2 ; 
+        }
+
+        if(response2 == 'y')
+        {
+            cout<<"Randomized"<<endl; 
+            board.randomizeTargets(); 
+            this_thread::sleep_for(chrono::milliseconds{750});
+        }
 
         switch(response)
         {
@@ -385,6 +350,117 @@ void astar(GameBoard & board)
 {
     SimpleVector<Node*> openList; // nodes to be evaluated ; will be sort to choose from the lowest fcost
     set<Node*> closedSet;  // nodes alr evaluated 
+    set<Node*> openSet; // to keep track of which are in the open list 
     
+    // add starting node to open set 
+    openList.pshBack(board.startNode); 
+    openSet.insert(board.startNode); 
+    int iterations = 0 ; 
+    int frametime = 180; 
+    
+    
+    
+    while(openList.size() >0 )
+    {
+        iterations++; 
+        // get the node with the smallest fcost 
+        mergeSort(openList, 0 , openList.size()-1); // might have to do another way because hcost is  also valuable 
+        
+        Node * currentNode = openList.popFrnt(); //give the best and removes it 
+        openSet.erase(currentNode); 
+        closedSet.insert(currentNode); 
+        
+        if( currentNode == board.goalNode)
+        {
+            cout<<"Goal found in "<< iterations <<" iterations"<<endl; 
+            currentNode->symbol = board.goalSymbol; 
+            this_thread::sleep_for(chrono::milliseconds{1300}); 
+            
+            cout<<"Now generating optimal path ... "<<endl; 
+            this_thread::sleep_for(chrono::milliseconds{1300});
+            generatePathAstar(board, currentNode);
+            break; 
+        }
+        
+        // now iterate through neighbors of currentNode 
+        
+        for(int i = 1 ; i>=-1 ; i-- )
+        {
+            for(int j = 1 ; j>=-1 ; j-- )
+            {
+                
+                if(i== j)
+                {
+                    continue ;                     
+                }
+                
+                if(i ==0 && j==0)
+                {
+                    continue; 
+                }
+                
+                int newRow = currentNode->row + i ; 
+                int newCol = currentNode->col +j ; 
+
+                // first check if the coords are even valid 
+                if((newRow <0 || newRow >= board.rows) || (newCol <0 || newCol>= board.cols))
+                {
+                    //invalid 
+                    continue; //go next 
+                }
+                
+                // it has been visited alr
+                if(closedSet.find(board.grid[newRow][newCol]) != closedSet.end())
+                {
+                    continue; 
+                }
+                
+                int newMovementCost = currentNode->gCost + getDistance(currentNode, board.grid[newRow][newCol]); 
+                
+                if(newMovementCost < currentNode->gCost || openSet.find(board.grid[newRow][newCol]) == openSet.end())
+                {
+                    board.grid[newRow][newCol]->gCost = newMovementCost ; 
+                    board.grid[newRow][newCol]->hCost = getDistance(board.grid[newRow][newCol], board.goalNode); 
+                    board.grid[newRow][newCol]->parent = currentNode ;
+                    
+                    if(openSet.find(board.grid[newRow][newCol]) == openSet.end())
+                    {
+                        board.grid[newRow][newCol]->symbol = board.visitedSymbol; 
+                        openList.pshBack(board.grid[newRow][newCol]); 
+                        openSet.insert(board.grid[newRow][newCol]); 
+                    }
+                }
+                
+            }
+        }
+        
+        draw(board, frametime); 
+    }
   
+    
+}
+
+int getDistance(Node* node1 , Node* node2 ){
+    int distX = abs(node1->col - node2->col); 
+    int distY = abs(node1->row - node2->row);  
+    
+    if( distX > distY )
+    {
+        return 14*distY + 10*(distX -distY); 
+    }
+    
+    return 14*distX + 10*(distY-distX); 
+}
+void generatePathAstar( GameBoard& board , Node* goalNode )
+{
+    Node* currentNode = goalNode; 
+    
+    while(currentNode != board.startNode )
+    {
+        currentNode->symbol = board.pathSymbol; 
+        currentNode = currentNode->parent; 
+        
+        draw(board ,200); 
+    }
+    
 }
