@@ -24,8 +24,8 @@ void bfs(GameBoard & board);
 void dfs(GameBoard & board); 
 void generatePath(GameBoard& board , Node* currentNode);  // a recursive function that handles path generation 
 void astar(GameBoard & board); 
-void mergeSort(SimpleVector<Node*> arr, int l, int r) ; 
-void merge(SimpleVector<Node*> arr, int p, int q, int r); 
+void mergeSort(SimpleVector<Node*> &arr, int l, int r) ; 
+void merge(SimpleVector<Node*>& arr, int p, int q, int r); 
 
 
 
@@ -33,10 +33,50 @@ int main()
 {
     srand(time(0)); 
 
-    bool gameRunning = true; 
+    bool gameRunning = false; 
     const int frameTime = 2000; // how many milliseconds before we draw the next frame ; 
     
  
+    
+    Node* test1 =new Node(0,0 );  
+    test1->gCost = 1;     
+    test1->hCost = 1; 
+
+    Node* test2 =new Node(0,0 ); 
+    test2->gCost = 2;     
+    test2->hCost = 2; 
+    
+    Node* test3 =new Node(0,0 ); 
+    test3->gCost = 3;     
+    test3->hCost = 3; 
+    
+    Node* test4 =new Node(0,0 ); 
+    test4->gCost = 4;     
+    test4->hCost = 4; 
+    
+    SimpleVector<Node*> testVector ; 
+    
+    testVector.pshBack(test3); 
+    testVector.pshBack(test1); 
+    testVector.pshBack(test4); 
+    testVector.pshBack(test2); 
+    
+    
+    
+    for(int i = 0 ; i<testVector.size(); i++)
+    {
+        cout<<testVector[i]->getFCost()<<" "; 
+    }
+    cout<<endl; 
+    
+    mergeSort(testVector, 0 , testVector.size()-1);
+    
+    for(int i = 0 ; i<testVector.size(); i++)
+    {
+        cout<<testVector[i]->getFCost()<<" "; 
+    }
+    
+    delete test1 , test2 , test3 , test4; 
     
     while(gameRunning)
     {
@@ -281,7 +321,7 @@ void dfs(GameBoard & board)
     }
 }
 
-void mergeSort(SimpleVector<Node*> arr, int l, int r) {
+void mergeSort(SimpleVector<Node*> &arr, int l, int r) {
   if (l < r) {
     // m is the point where the array is divided into two subarrays
     int m = l + (r - l) / 2;
@@ -294,51 +334,51 @@ void mergeSort(SimpleVector<Node*> arr, int l, int r) {
   }
 }
 
-void merge(SimpleVector<Node*> arr, int p, int q, int r) {
+void merge(SimpleVector<Node*>& arr, int p, int q, int r) {
   
-//  // Create L ← A[p..q] and M ← A[q+1..r]
-//  int n1 = q - p + 1;
-//  int n2 = r - q;
-//
-//  int L[n1], M[n2];
-//
-//  for (int i = 0; i < n1; i++)
-//    L[i] = arr[p + i];
-//  for (int j = 0; j < n2; j++)
-//    M[j] = arr[q + 1 + j];
-//
-//  // Maintain current index of sub-arrays and main array
-//  int i, j, k;
-//  i = 0;
-//  j = 0;
-//  k = p;
-//
-//  // Until we reach either end of either L or M, pick larger among
-//  // elements L and M and place them in the correct position at A[p..r]
-//  while (i < n1 && j < n2) {
-//    if (L[i] <= M[j]) {
-//      arr[k] = L[i];
-//      i++;
-//    } else {
-//      arr[k] = M[j];
-//      j++;
-//    }
-//    k++;
-//  }
-//
-//  // When we run out of elements in either L or M,
-//  // pick up the remaining elements and put in A[p..r]
-//  while (i < n1) {
-//    arr[k] = L[i];
-//    i++;
-//    k++;
-//  }
-//
-//  while (j < n2) {
-//    arr[k] = M[j];
-//    j++;
-//    k++;
-//  }
+  // Create L ← A[p..q] and M ← A[q+1..r]
+  int n1 = q - p + 1;
+  int n2 = r - q;
+
+  SimpleVector<Node*> L(n1), M(n2);
+
+  for (int i = 0; i < n1; i++)
+    L[i] = arr[p + i];
+  for (int j = 0; j < n2; j++)
+    M[j] = arr[q + 1 + j];
+
+  // Maintain current index of sub-arrays and main array
+  int i, j, k;
+  i = 0;
+  j = 0;
+  k = p;
+
+  // Until we reach either end of either L or M, pick larger among
+  // elements L and M and place them in the correct position at A[p..r]
+  while (i < n1 && j < n2) {
+    if (L[i]->getFCost() <= M[j]->getFCost()) {
+      arr[k] = L[i];
+      i++;
+    } else {
+      arr[k] = M[j];
+      j++;
+    }
+    k++;
+  }
+
+  // When we run out of elements in either L or M,
+  // pick up the remaining elements and put in A[p..r]
+  while (i < n1) {
+    arr[k] = L[i];
+    i++;
+    k++;
+  }
+
+  while (j < n2) {
+    arr[k] = M[j];
+    j++;
+    k++;
+  }
 }
 
 void astar(GameBoard & board)
